@@ -1,0 +1,11 @@
+create type proveedores as (
+id_prov integer ,
+nombre character varying(30) ,
+direccion character varying(30) ,
+ciudad character varying(30),
+pais character varying(30),
+telefono character varying(12) ,
+nit character varying(12),
+email character varying(50),
+fecha_creacion date
+)

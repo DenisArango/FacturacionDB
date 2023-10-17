@@ -1,0 +1,39 @@
+create or replace function GET_PROVEEDORES()
+returns setof PROVEEDORES
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec PROVEEDORES; 
+
+
+cursor_tablas cursor is 
+select * from PROVEEDOR ORDER BY ID_PROV ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.id_prov = registro.id_prov;
+				rec.nombre = registro.nombre;
+				rec.direccion = registro.direccion;
+				rec.ciudad = registro.ciudad;
+				rec.pais = registro.pais;
+				rec.telefono = registro.telefono;
+				rec.nit = registro.nit;
+				rec.email = registro.email;
+				rec.fecha_creacion = registro.fecha_creacion;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
