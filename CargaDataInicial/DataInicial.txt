@@ -23,3 +23,8 @@ CALL AGREGAR_USUARIO ('parango','pamela123', 3, 3, 3)
 CALL AGREGAR_USUARIO ('larango','luis123', 4, 4, 4)
 -- ESTADO 0 INACTIVO 1 ACTIVO
 update usuario set estado = 1
+-- SE AGREGAN PROVEEDORES
+CALL AGREGAR_PROVEEDOR('Variedades Dayana', '2da calle 3-81 zona 6', 'Baja Verapaz', 'Guatemala', '55930403', '02010233', 'vd@gmail.com')
+CALL AGREGAR_PROVEEDOR('Idealsa', '3ra calle 8-82 zona 6', 'Baja Verapaz', 'Guatemala', '51230403', '3423412', 'idealsa@gmail.com')
+CALL AGREGAR_PROVEEDOR('Del Frutal', '9na calle 8-01 zona 5', 'Guatemala', 'Guatemala', '2323212', '1234433', 'delfrutal@gmail.com')
+CALL AGREGAR_PROVEEDOR('FritoLay', '1ra calle 2-21 zona 3', 'Peten', 'Guatemala', '12345445', '66655423', 'frito@gmail.com')
