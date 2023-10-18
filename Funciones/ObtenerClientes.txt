@@ -1,0 +1,40 @@
+create or replace function get_clientes()
+returns setof CLIENTES
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec CLIENTES; 
+
+
+cursor_tablas cursor is 
+select * from CLIENTE ORDER BY id_cliente ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.ID_CLIENTE = registro.id_cliente;
+				rec.nombre = registro.nombre;
+				rec.APELLIDO = registro.APELLIDO;
+				rec.RAZON_SOCIAL = registro.RAZON_SOCIAL;
+				rec.NIT = registro.NIT;
+				rec.DIRECCION = registro.DIRECCION;
+				rec.TELEFONO = registro.TELEFONO;
+				rec.EMAIL = registro.EMAIL;
+				rec.fecha_ingreso = registro.fecha_ingreso;
+				rec.estado = registro.estado;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;

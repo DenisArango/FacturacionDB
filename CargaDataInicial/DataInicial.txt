@@ -6,6 +6,9 @@ SELECT * FROM USUARIO
 TRUNCATE ROL RESTART IDENTITY CASCADE
 TRUNCATE EMPLEADO RESTART IDENTITY CASCADE
 TRUNCATE USUARIO RESTART IDENTITY CASCADE
+TRUNCATE PROVEEDORES RESTART IDENTITY CASCADE
+TRUNCATE CLIENTES RESTART IDENTITY CASCADE
+TRUNCATE PRODUCTOS RESTART IDENTITY CASCADE
 -- LLENAR ROLES
 call agregar_rol('ADMIN')
 call agregar_rol('GERENTE')
@@ -28,3 +31,13 @@ CALL AGREGAR_PROVEEDOR('Variedades Dayana', '2da calle 3-81 zona 6', 'Baja Verap
 CALL AGREGAR_PROVEEDOR('Idealsa', '3ra calle 8-82 zona 6', 'Baja Verapaz', 'Guatemala', '51230403', '3423412', 'idealsa@gmail.com')
 CALL AGREGAR_PROVEEDOR('Del Frutal', '9na calle 8-01 zona 5', 'Guatemala', 'Guatemala', '2323212', '1234433', 'delfrutal@gmail.com')
 CALL AGREGAR_PROVEEDOR('FritoLay', '1ra calle 2-21 zona 3', 'Peten', 'Guatemala', '12345445', '66655423', 'frito@gmail.com')
+-- SE AGREGAN CLIENTES
+CALL AGREGAR_CLIENTE ('Flavio', 'Garcia', '', '11254488', '3ra calle Zona 5 Salama, BV', '12514584', 'flaviog@gmail.com', 1)
+CALL AGREGAR_CLIENTE ('Luis', 'Salazar', '', '12334323', '1era calle Zona 6 Salama, BV', '12355534', 'luiss@gmail.com', 1)
+CALL AGREGAR_CLIENTE ('', '', 'Despensa Familiar S.A.', '12354345', '3ra calle Zona 8 Rabinal, BV', '756345234', 'despensaf@gmail.com', 1)
+CALL AGREGAR_CLIENTE ('', '', 'FerroMAX S.A.', '86543454', '2da calle Coban, AV', '34312222', 'ferromax@gmail.com', 1)
+- SE AGREGAN PRODUCTOS
+CALL AGREGAR_PRODUCTO (123123, 'Frijol Ducal lata 400grs', 20, 8, 30, 4.25, 1)
+CALL AGREGAR_PRODUCTO (123412, 'Aceite Ideal Botella 500ml', 15, 5, 25, 10, 2)
+CALL AGREGAR_PRODUCTO (123451, 'Jugo de lata 450ml sabor manzana', 12, 8, 32, 6.50, 3)
+CALL AGREGAR_PRODUCTO (123456, 'Lays bolsa 300grs original', 12, 5, 24, 5, 4)

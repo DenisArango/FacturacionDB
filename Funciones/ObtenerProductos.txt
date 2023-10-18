@@ -1,0 +1,40 @@
+create or replace function get_PRODUCTOS()
+returns setof PRODUCTOS
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec PRODUCTOS; 
+
+cursor_tablas cursor is 
+select PD.*, PV.NOMBRE  from PRODUCTO PD INNER JOIN PROVEEDOR PV
+ON PD.ID_PROVEEDOR = PV.ID_PROV
+ORDER BY BARCODE_ID ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.BARCODE_ID = registro.BARCODE_ID;
+				rec.DESCRIPCION = registro.DESCRIPCION;
+				rec.STOCK = registro.STOCK;
+				rec.STOCK_MINIMO = registro.STOCK_MINIMO;
+				rec.STOCK_MAXIMO = registro.STOCK_MAXIMO;
+				rec.PRECIO_UNITARIO = registro.PRECIO_UNITARIO;
+				rec.LAST_UPDATE = registro.LAST_UPDATE;
+				rec.ID_PROVEEDOR = registro.ID_PROVEEDOR;
+				rec.NOMBRE = registro.NOMBRE;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
