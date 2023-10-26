@@ -1,43 +1,571 @@
--- CONSULTAS
-SELECT * FROM ROL
-SELECT * FROM EMPLEADO
-SELECT * FROM USUARIO
+-- ELIMINAMOS LA BASE DE DATOS Y LA CREAMOS
+-- DROP DATABASE FACTURACION;
+-- CREATE DATABASE FACTURACION;
+-- CREAMOS LAS TABLAS
+CREATE TABLE IF NOT EXISTS ROL (
+ID_ROL SERIAL,
+DESCRIPCION  VARCHAR(80),
+PRIMARY KEY (ID_ROL)
+);
+
+CREATE TABLE IF NOT EXISTS EMPLEADO (
+ID_EMPLEADO SERIAL,
+NOMBRE VARCHAR (100),
+APELLIDO VARCHAR(100),
+GENERO VARCHAR(1),
+SALARIO NUMERIC,
+FECHA_NACIMIENTO DATE,
+PRIMARY KEY (ID_EMPLEADO)
+);
+
+CREATE TABLE IF NOT EXISTS USUARIO(
+ID_USUARIO SERIAL,
+USUARIO VARCHAR (100),
+CONTRASEÑA VARCHAR(100),
+ULTIMO_INGRESO DATE,
+ESTADO INT,
+ID_EMPLEADO INT,
+ID_ROL INT,
+PRIMARY KEY (USUARIO,CONTRASEÑA),
+FOREIGN KEY (ID_EMPLEADO) REFERENCES EMPLEADO(ID_EMPLEADO),
+FOREIGN KEY (ID_ROL) REFERENCES ROL(ID_ROL)
+);
+
+CREATE TABLE IF NOT EXISTS CLIENTE (
+ID_CLIENTE SERIAL,
+NOMBRE VARCHAR(100),
+APELLIDO VARCHAR(100),
+RAZON_SOCIAL VARCHAR(100),
+NIT  VARCHAR (10),
+DIRECCION VARCHAR(100),
+TELEFONO VARCHAR (100),
+EMAIL   VARCHAR (50),
+FECHA_INGRESO DATE,
+ESTADO INT,
+PRIMARY KEY (ID_CLIENTE)
+);
+
+
+create table IF NOT EXISTS proveedor(
+id_prov serial ,
+nombre character varying(30) ,
+direccion character varying(30) ,
+ciudad character varying(30),
+pais character varying(30),
+telefono character varying(12) ,
+nit character varying(12),
+email character varying(50),
+fecha_creacion date,
+PRIMARY KEY(ID_PROV)
+);
+
+CREATE TABLE IF NOT EXISTS PRODUCTO (
+BARCODE_ID NUMERIC,
+DESCRIPCION VARCHAR(100),
+STOCK INT,
+STOCK_MINIMO INT,
+STOCK_MAXIMO INT,
+PRECIO_UNITARIO FLOAT,
+LAST_UPDATE DATE,
+ID_PROVEEDOR int,
+PRIMARY KEY(BARCODE_ID),
+FOREIGN KEY(ID_PROVEEDOR) REFERENCES PROVEEDOR(ID_PROV)
+);
+
+CREATE TABLE IF NOT EXISTS TRANS(
+    id_trans SERIAL,
+    trans_type VARCHAR(50),
+    barcode_id INT,
+    qty FLOAT,
+    trans_date DATE,
+    usuario VARCHAR(50),
+    PRIMARY KEY (id_trans)
+);
+
+-- CREAMOS LOS TIPOS
+create type CLIENTES as (
+ID_CLIENTE INT,
+NOMBRE VARCHAR(100),
+APELLIDO VARCHAR(100),
+RAZON_SOCIAL VARCHAR(100),
+NIT  VARCHAR (10),
+DIRECCION VARCHAR(100),
+TELEFONO VARCHAR (100),
+EMAIL   VARCHAR (50),
+FECHA_INGRESO DATE,
+ESTADO INT
+);
+
+create type PRODUCTOS as (
+BARCODE_ID NUMERIC,
+DESCRIPCION VARCHAR(100),
+STOCK INT,
+STOCK_MINIMO INT,
+STOCK_MAXIMO INT,
+PRECIO_UNITARIO FLOAT,
+LAST_UPDATE DATE,
+ID_PROVEEDOR int,
+NOMBRE VARCHAR(100)
+);
+
+create type proveedores as (
+id_prov integer ,
+nombre character varying(30) ,
+direccion character varying(30) ,
+ciudad character varying(30),
+pais character varying(30),
+telefono character varying(12) ,
+nit character varying(12),
+email character varying(50),
+fecha_creacion date
+);
+
+-- CREAMOS LAS FUNCIONES
+create or replace function get_clientes()
+returns setof CLIENTES
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec CLIENTES; 
+
+
+cursor_tablas cursor is 
+select * from CLIENTE ORDER BY id_cliente ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.ID_CLIENTE = registro.id_cliente;
+				rec.nombre = registro.nombre;
+				rec.APELLIDO = registro.APELLIDO;
+				rec.RAZON_SOCIAL = registro.RAZON_SOCIAL;
+				rec.NIT = registro.NIT;
+				rec.DIRECCION = registro.DIRECCION;
+				rec.TELEFONO = registro.TELEFONO;
+				rec.EMAIL = registro.EMAIL;
+				rec.fecha_ingreso = registro.fecha_ingreso;
+				rec.estado = registro.estado;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
+
+create or replace function get_EMPLEADO()
+returns setof EMPLEADO
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec EMPLEADO; 
+
+cursor_tablas cursor is 
+select * from EMPLEADO ORDER BY ID_EMPLEADO asc;
+
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.ID_EMPLEADO = registro.ID_EMPLEADO; 
+				rec.NOMBRE = registro.NOMBRE;
+				rec.APELLIDO = registro.APELLIDO;
+				rec.GENERO = registro.GENERO;
+				rec.SALARIO = registro.SALARIO;
+				rec.FECHA_NACIMIENTO = registro.FECHA_NACIMIENTO;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
+
+create or replace function get_PRODUCTOS()
+returns setof PRODUCTOS
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec PRODUCTOS; 
+
+cursor_tablas cursor is 
+select PD.*, PV.NOMBRE  from PRODUCTO PD INNER JOIN PROVEEDOR PV
+ON PD.ID_PROVEEDOR = PV.ID_PROV
+ORDER BY BARCODE_ID ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.BARCODE_ID = registro.BARCODE_ID;
+				rec.DESCRIPCION = registro.DESCRIPCION;
+				rec.STOCK = registro.STOCK;
+				rec.STOCK_MINIMO = registro.STOCK_MINIMO;
+				rec.STOCK_MAXIMO = registro.STOCK_MAXIMO;
+				rec.PRECIO_UNITARIO = registro.PRECIO_UNITARIO;
+				rec.LAST_UPDATE = registro.LAST_UPDATE;
+				rec.ID_PROVEEDOR = registro.ID_PROVEEDOR;
+				rec.NOMBRE = registro.NOMBRE;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
+
+create or replace function GET_PROVEEDORES()
+returns setof PROVEEDORES
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec PROVEEDORES; 
+
+
+cursor_tablas cursor is 
+select * from PROVEEDOR ORDER BY ID_PROV ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.id_prov = registro.id_prov;
+				rec.nombre = registro.nombre;
+				rec.direccion = registro.direccion;
+				rec.ciudad = registro.ciudad;
+				rec.pais = registro.pais;
+				rec.telefono = registro.telefono;
+				rec.nit = registro.nit;
+				rec.email = registro.email;
+				rec.fecha_creacion = registro.fecha_creacion;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
+
+create or replace function GET_TRANS()
+returns setof TRANS
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec TRANS; 
+cursor_tablas cursor is 
+select * from TRANS ORDER BY ID_TRANS ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.ID_TRANS = registro.ID_TRANS;
+				rec.TRANS_TYPE = registro.TRANS_TYPE;
+				rec.BARCODE_ID = registro.BARCODE_ID;
+				rec.QTY = registro.QTY;
+				rec.TRANS_DATE = registro.TRANS_DATE;
+				rec.USUARIO = registro.USUARIO;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+; 
+
+CREATE FUNCTION VALIDATE_USER(
+_USUARIO VARCHAR(100),
+_CONTRASEÑA VARCHAR(30)
+) RETURNS INT AS $$
+DECLARE _RS INT;
+BEGIN
+SELECT COUNT(ID_USUARIO) INTO _RS FROM USUARIO
+WHERE USUARIO = _USUARIO AND CONTRASEÑA = _CONTRASEÑA;
+RETURN _RS;
+END;
+$$ LANGUAGE plpgsql;
+
+-- SE CREAN LOS SPS
+CREATE OR REPLACE PROCEDURE ACTUALIZAR_PROVEEDOR (
+ID_PROVEEDOR_ INT,
+NOMBRE_ VARCHAR (100),
+DIRECCION_ VARCHAR(100),
+CIUDAD_ VARCHAR (100),
+PAIS_ VARCHAR (100),
+TELEFONO_ VARCHAR (100),
+NIT_ VARCHAR (100),
+EMAIL_ VARCHAR (100)
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+UPDATE PROVEEDOR SET NOMBRE = NOMBRE_, DIRECCION = DIRECCION_, CIUDAD = CIUDAD_, PAIS = PAIS_, 
+TELEFONO = TELEFONO_, NIT = NIT_, EMAIL = EMAIL_
+WHERE ID_PROV = ID_PROVEEDOR_;
+END; $$;
+
+CREATE OR REPLACE PROCEDURE ELIMINAR_PROVEEDOR (
+ID_PROVEEDOR INT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+DELETE FROM PROVEEDOR P WHERE P.ID_PROV = ID_PROVEEDOR;
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE ELIMINAR_EMPLEADO (
+ID_EMPLEADO_ INT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+DELETE FROM EMPLEADO E WHERE E.ID_EMPLEADO = ID_EMPLEADO_;
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE ELIMINAR_PRODUCTO (
+BARCODE_ID_ INT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+DELETE FROM PRODUCTO C WHERE C.BARCODE_ID = BARCODE_ID_;
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE ELIMINAR_CLIENTE (
+ID_CLIENTE_ INT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+DELETE FROM CLIENTE C WHERE C.ID_CLIENTE = ID_CLIENTE_;
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE AGREGAR_USUARIO (
+USUARIO VARCHAR(100),
+CONTRASEÑA varchar(30),
+ESTADO INT,
+ID_EMPLEADO INT,
+ID_ROL INT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+INSERT INTO USUARIO (USUARIO, CONTRASEÑA, ULTIMO_INGRESO, ESTADO, ID_EMPLEADO, ID_ROL)
+VALUES (USUARIO, CONTRASEÑA, NOW(), ESTADO, ID_EMPLEADO, ID_ROL);
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE AGREGAR_ROL (
+DESCRIPCION  VARCHAR(80)
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+INSERT INTO ROL (DESCRIPCION)
+VALUES (DESCRIPCION);
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE AGREGAR_PROVEEDOR (
+NOMBRE VARCHAR (100),
+DIRECCION VARCHAR(100),
+CIUDAD VARCHAR (100),
+PAIS VARCHAR (100),
+TELEFONO VARCHAR (100),
+NIT VARCHAR (100),
+EMAIL VARCHAR (100)
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+INSERT INTO PROVEEDOR (NOMBRE, DIRECCION, CIUDAD, PAIS, TELEFONO, NIT, EMAIL, FECHA_CREACION)
+VALUES (NOMBRE, DIRECCION, CIUDAD, PAIS, TELEFONO, NIT, EMAIL, NOW());
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE AGREGAR_PRODUCTO (
+BARCODE_ID_ NUMERIC,
+DESCRIPCION_ VARCHAR(100),
+STOCK_ INT,
+STOCK_MINIMO_ INT,
+STOCK_MAXIMO_ INT,
+PRECIO_UNITARIO_ FLOAT,
+ID_PROVEEDOR_ int
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+INSERT INTO PRODUCTO (BARCODE_ID, DESCRIPCION, STOCK, STOCK_MINIMO, STOCK_MAXIMO, PRECIO_UNITARIO, LAST_UPDATE, ID_PROVEEDOR)
+VALUES (BARCODE_ID_, DESCRIPCION_, STOCK_, STOCK_MINIMO_, STOCK_MAXIMO_, PRECIO_UNITARIO_, NOW(), ID_PROVEEDOR_);
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE AGREGAR_EMPLEADO (
+NOMBRE VARCHAR (100),
+APELLIDO VARCHAR(100),
+GENERO VARCHAR(1),
+SALARIO FLOAT,
+FECHA_NACIMIENTO DATE
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+INSERT INTO EMPLEADO (NOMBRE, APELLIDO, GENERO, SALARIO, FECHA_NACIMIENTO)
+VALUES (NOMBRE, APELLIDO, GENERO, SALARIO, FECHA_NACIMIENTO);
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE AGREGAR_CLIENTE (
+NOMBRE_ VARCHAR(100),
+APELLIDO_ VARCHAR(100),
+RAZON_SOCIAL_ VARCHAR(100),
+NIT_  VARCHAR (10),
+DIRECCION_ VARCHAR(100),
+TELEFONO_ VARCHAR (100),
+EMAIL_   VARCHAR (50),
+ESTADO_ INT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+INSERT INTO CLIENTE (NOMBRE, APELLIDO, RAZON_SOCIAL, NIT, DIRECCION, TELEFONO, EMAIL, FECHA_INGRESO, ESTADO)
+VALUES (NOMBRE_, APELLIDO_, RAZON_SOCIAL_, NIT_, DIRECCION_, TELEFONO_, EMAIL_, now(), ESTADO_);
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE ACTUALIZAR_PRODUCTO (
+BARCODE_ID_ NUMERIC,
+DESCRIPCION_ VARCHAR(100),
+STOCK_MINIMO_ INT,
+STOCK_MAXIMO_ INT,
+PRECIO_UNITARIO_ FLOAT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+UPDATE PRODUCTO SET BARCODE_ID = BARCODE_ID_, DESCRIPCION = DESCRIPCION_,
+STOCK_MINIMO = STOCK_MINIMO_, STOCK_MAXIMO = STOCK_MAXIMO_, PRECIO_UNITARIO = PRECIO_UNITARIO_,
+LAST_UPDATE = NOW()
+WHERE BARCODE_ID = BARCODE_ID_;
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE ACTUALIZAR_EMPLEADO (
+ID_EMPLEADO_ INT,
+NOMBRE_ VARCHAR (100),
+APELLIDO_ VARCHAR(100),
+GENERO_ VARCHAR(1),
+SALARIO_ FLOAT,
+FECHA_NACIMIENTO_ DATE
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+UPDATE EMPLEADO SET NOMBRE = NOMBRE_, APELLIDO = APELLIDO_, GENERO = GENERO_, 
+SALARIO = SALARIO_, FECHA_NACIMIENTO = FECHA_NACIMIENTO_
+WHERE ID_EMPLEADO = ID_EMPLEADO_;
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE ACTUALIZAR_CLIENTE (
+ID_CLIENTE_ INT,
+NOMBRE_ VARCHAR(100),
+APELLIDO_ VARCHAR(100),
+RAZON_SOCIAL_ VARCHAR(100),
+NIT_  VARCHAR (10),
+DIRECCION_ VARCHAR(100),
+TELEFONO_ VARCHAR (100),
+EMAIL_   VARCHAR (50),
+ESTADO_ INT
+)
+LANGUAGE plpgsql as $$
+BEGIN 
+UPDATE CLIENTE SET NOMBRE = NOMBRE_, APELLIDO = APELLIDO_, RAZON_SOCIAL = RAZON_SOCIAL_, 
+NIT = NIT_, DIRECCION = DIRECCION_, TELEFONO = TELEFONO_, EMAIL = EMAIL_, ESTADO = ESTADO_
+WHERE ID_CLIENTE = ID_CLIENTE_;
+END; $$ ;
+
+CREATE OR REPLACE PROCEDURE agregar_stock(
+barcode_id_ INT,
+stock_ INT,
+user_ VARCHAR(50)
+)
+LANGUAGE 'plpgsql'
+AS $BODY$
+DECLARE STOCK_ACTUAL INT;
+BEGIN 
+SELECT STOCK INTO STOCK_ACTUAL FROM PRODUCTO WHERE BARCODE_ID = BARCODE_ID_;
+STOCK_ = STOCK_ + STOCK_ACTUAL;
+UPDATE PRODUCTO SET STOCK = STOCK_ WHERE BARCODE_ID = BARCODE_ID_;
+INSERT INTO TRANS (TRANS_TYPE, BARCODE_ID, QTY, TRANS_DATE, USUARIO)
+VALUES ('AGREGAR_STOCK', BARCODE_ID_, STOCK_, NOW(), USER_);
+END; 
+$BODY$;
+
 -- VACIAR TABLAS
-TRUNCATE ROL RESTART IDENTITY CASCADE
-TRUNCATE EMPLEADO RESTART IDENTITY CASCADE
-TRUNCATE USUARIO RESTART IDENTITY CASCADE
-TRUNCATE PROVEEDORES RESTART IDENTITY CASCADE
-TRUNCATE CLIENTES RESTART IDENTITY CASCADE
-TRUNCATE PRODUCTOS RESTART IDENTITY CASCADE
+TRUNCATE ROL RESTART IDENTITY CASCADE;
+TRUNCATE EMPLEADO RESTART IDENTITY CASCADE;
+TRUNCATE USUARIO RESTART IDENTITY CASCADE;
+TRUNCATE PROVEEDOR RESTART IDENTITY CASCADE;
+TRUNCATE CLIENTE RESTART IDENTITY CASCADE;
+TRUNCATE PRODUCTO RESTART IDENTITY CASCADE;
 -- LLENAR ROLES
-call agregar_rol('ADMIN')
-call agregar_rol('GERENTE')
-call agregar_rol('VENTAS')
-call agregar_rol('COMPRAS')
+call agregar_rol('ADMIN');
+call agregar_rol('GERENTE');
+call agregar_rol('VENTAS');
 -- LLENAR EMPLEADOS
-CALL AGREGAR_EMPLEADO('DENIS','ARANGO','M',123,'2000-01-01')
-CALL AGREGAR_EMPLEADO('DIEGO','ARANGO','M',1234,'2000-01-01')
-CALL AGREGAR_EMPLEADO('PAMELA','ARANGO','F',1233,'2000-01-01')
-CALL AGREGAR_EMPLEADO('LUIS','ARANGO','M',1232,'2000-01-01')
+CALL AGREGAR_EMPLEADO('DENIS','ARANGO','M',123,'2000-01-01');
+CALL AGREGAR_EMPLEADO('DIEGO','ARANGO','M',1234,'2000-01-01');
+CALL AGREGAR_EMPLEADO('PAMELA','ARANGO','F',1233,'2000-01-01');
+CALL AGREGAR_EMPLEADO('LUIS','ARANGO','M',1232,'2000-01-01');
 -- LLENAR USUARIOS
-CALL AGREGAR_USUARIO ('darango','denis123', 1, 1, 1)
-CALL AGREGAR_USUARIO ('aarango','diego123', 2, 2, 2)
-CALL AGREGAR_USUARIO ('parango','pamela123', 3, 3, 3)
-CALL AGREGAR_USUARIO ('larango','luis123', 4, 4, 4)
+CALL AGREGAR_USUARIO ('darango','denis123', 1, 1, 1);
+CALL AGREGAR_USUARIO ('aarango','diego123', 1, 2, 2);
+CALL AGREGAR_USUARIO ('parango','pamela123', 1, 3, 3);
+CALL AGREGAR_USUARIO ('larango','luis123', 1, 4, 3);
 -- ESTADO 0 INACTIVO 1 ACTIVO
-update usuario set estado = 1
+-- update usuario set estado = 1
 -- SE AGREGAN PROVEEDORES
-CALL AGREGAR_PROVEEDOR('Variedades Dayana', '2da calle 3-81 zona 6', 'Baja Verapaz', 'Guatemala', '55930403', '02010233', 'vd@gmail.com')
-CALL AGREGAR_PROVEEDOR('Idealsa', '3ra calle 8-82 zona 6', 'Baja Verapaz', 'Guatemala', '51230403', '3423412', 'idealsa@gmail.com')
-CALL AGREGAR_PROVEEDOR('Del Frutal', '9na calle 8-01 zona 5', 'Guatemala', 'Guatemala', '2323212', '1234433', 'delfrutal@gmail.com')
-CALL AGREGAR_PROVEEDOR('FritoLay', '1ra calle 2-21 zona 3', 'Peten', 'Guatemala', '12345445', '66655423', 'frito@gmail.com')
+CALL AGREGAR_PROVEEDOR('Variedades Dayana', '2da calle 3-81 zona 6', 'Baja Verapaz', 'Guatemala', '55930403', '02010233', 'vd@gmail.com');
+CALL AGREGAR_PROVEEDOR('Idealsa', '3ra calle 8-82 zona 6', 'Baja Verapaz', 'Guatemala', '51230403', '3423412', 'idealsa@gmail.com');
+CALL AGREGAR_PROVEEDOR('Del Frutal', '9na calle 8-01 zona 5', 'Guatemala', 'Guatemala', '2323212', '1234433', 'delfrutal@gmail.com');
+CALL AGREGAR_PROVEEDOR('FritoLay', '1ra calle 2-21 zona 3', 'Peten', 'Guatemala', '12345445', '66655423', 'frito@gmail.com');
 -- SE AGREGAN CLIENTES
-CALL AGREGAR_CLIENTE ('Flavio', 'Garcia', '', '11254488', '3ra calle Zona 5 Salama, BV', '12514584', 'flaviog@gmail.com', 1)
-CALL AGREGAR_CLIENTE ('Luis', 'Salazar', '', '12334323', '1era calle Zona 6 Salama, BV', '12355534', 'luiss@gmail.com', 1)
-CALL AGREGAR_CLIENTE ('', '', 'Despensa Familiar S.A.', '12354345', '3ra calle Zona 8 Rabinal, BV', '756345234', 'despensaf@gmail.com', 1)
-CALL AGREGAR_CLIENTE ('', '', 'FerroMAX S.A.', '86543454', '2da calle Coban, AV', '34312222', 'ferromax@gmail.com', 1)
-- SE AGREGAN PRODUCTOS
-CALL AGREGAR_PRODUCTO (123123, 'Frijol Ducal lata 400grs', 20, 8, 30, 4.25, 1)
-CALL AGREGAR_PRODUCTO (123412, 'Aceite Ideal Botella 500ml', 15, 5, 25, 10, 2)
-CALL AGREGAR_PRODUCTO (123451, 'Jugo de lata 450ml sabor manzana', 12, 8, 32, 6.50, 3)
-CALL AGREGAR_PRODUCTO (123456, 'Lays bolsa 300grs original', 12, 5, 24, 5, 4)
+CALL AGREGAR_CLIENTE ('Flavio', 'Garcia', '', '11254488', '3ra calle Zona 5 Salama, BV', '12514584', 'flaviog@gmail.com', 1);
+CALL AGREGAR_CLIENTE ('Luis', 'Salazar', '', '12334323', '1era calle Zona 6 Salama, BV', '12355534', 'luiss@gmail.com', 1);
+CALL AGREGAR_CLIENTE ('', '', 'Despensa Familiar S.A.', '12354345', '3ra calle Zona 8 Rabinal, BV', '756345234', 'despensaf@gmail.com', 1);
+CALL AGREGAR_CLIENTE ('', '', 'FerroMAX S.A.', '86543454', '2da calle Coban, AV', '34312222', 'ferromax@gmail.com', 1);
+-- SE AGREGAN PRODUCTOS
+CALL AGREGAR_PRODUCTO (123123, 'Frijol Ducal lata 400grs', 20, 8, 30, 4.25, 1);
+CALL AGREGAR_PRODUCTO (123412, 'Aceite Ideal Botella 500ml', 15, 5, 25, 10, 2);
+CALL AGREGAR_PRODUCTO (123451, 'Jugo de lata 450ml sabor manzana', 12, 8, 32, 6.50, 3);
+CALL AGREGAR_PRODUCTO (123456, 'Lays bolsa 300grs original', 12, 5, 24, 5, 4);
+-- CONSULTAS
+SELECT * FROM ROL;
+SELECT * FROM EMPLEADO;
+SELECT * FROM USUARIO;
+SELECT * FROM CLIENTE;
+SELECT * FROM PROVEEDOR;
+SELECT * FROM PRODUCTO;
+SELECT * FROM TRANS;

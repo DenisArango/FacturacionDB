@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS TRANS(
+    id_trans SERIAL,
+    trans_type VARCHAR(50),
+    barcode_id INT,
+    qty FLOAT,
+    trans_date DATE,
+    usuario VARCHAR(50),
+    PRIMARY KEY (id_trans)
+);

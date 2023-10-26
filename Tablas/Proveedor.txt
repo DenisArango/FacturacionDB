@@ -1,4 +1,4 @@
-create table proveedor(
+create table IF NOT EXISTS proveedor(
 id_prov serial ,
 nombre character varying(30) ,
 direccion character varying(30) ,
@@ -9,4 +9,4 @@ nit character varying(12),
 email character varying(50),
 fecha_creacion date,
 PRIMARY KEY(ID_PROV)
-)
+);

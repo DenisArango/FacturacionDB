@@ -1,15 +1,12 @@
-
-create or replace function get_EMPLEADO()
-returns setof EMPLEADO
+create or replace function GET_TRANS()
+returns setof TRANS
 language plpgsql
 as $function$
 declare 
 registro RECORD;
-rec EMPLEADO; 
-
+rec TRANS; 
 cursor_tablas cursor is 
-select * from EMPLEADO ORDER BY ID_EMPLEADO asc;
-
+select * from TRANS ORDER BY ID_TRANS ASC;
 
 	begin 
 	
@@ -18,12 +15,12 @@ select * from EMPLEADO ORDER BY ID_EMPLEADO asc;
 		while found loop
 			begin 
 				
-				rec.ID_EMPLEADO = registro.ID_EMPLEADO; 
-				rec.NOMBRE = registro.NOMBRE;
-				rec.APELLIDO = registro.APELLIDO;
-				rec.GENERO = registro.GENERO;
-				rec.SALARIO = registro.SALARIO;
-				rec.FECHA_NACIMIENTO = registro.FECHA_NACIMIENTO;
+				rec.ID_TRANS = registro.ID_TRANS;
+				rec.TRANS_TYPE = registro.TRANS_TYPE;
+				rec.BARCODE_ID = registro.BARCODE_ID;
+				rec.QTY = registro.QTY;
+				rec.TRANS_DATE = registro.TRANS_DATE;
+				rec.USUARIO = registro.USUARIO;
 			exception when others then 
 				raise notice '% %',sqlerrm,sqlstate;
 			end;
@@ -34,4 +31,4 @@ select * from EMPLEADO ORDER BY ID_EMPLEADO asc;
 		return;
 	end;
 $function$
-;
+; 

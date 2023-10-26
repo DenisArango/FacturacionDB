@@ -1,3 +1,4 @@
+
 create or replace function GET_PROVEEDORES()
 returns setof PROVEEDORES
 language plpgsql
