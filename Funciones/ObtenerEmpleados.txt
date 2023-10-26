@@ -1,0 +1,36 @@
+create or replace function get_EMPLEADO()
+returns setof EMPLEADO
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec EMPLEADO; 
+
+cursor_tablas cursor is 
+select * from EMPLEADO ORDER BY ID_EMPLEADO asc;
+
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.ID_EMPLEADO = registro.ID_EMPLEADO; 
+				rec.NOMBRE = registro.NOMBRE;
+				rec.APELLIDO = registro.APELLIDO;
+				rec.GENERO = registro.GENERO;
+				rec.SALARIO = registro.SALARIO;
+				rec.FECHA_NACIMIENTO = registro.FECHA_NACIMIENTO;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
