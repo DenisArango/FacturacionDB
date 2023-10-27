@@ -1,0 +1,4 @@
+create type ROL as (
+ID_ROL SERIAL,
+DESCRIPCION  VARCHAR(80)
+)
