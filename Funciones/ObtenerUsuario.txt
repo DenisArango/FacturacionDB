@@ -1,0 +1,42 @@
+create or replace function get_usuarios()
+returns setof USUARIOS
+language plpgsql
+as $function$
+declare 
+registro RECORD;
+rec USUARIOS; 
+
+
+cursor_tablas cursor is 
+select U.*,E.NOMBRE,R.DESCRIPCION from USUARIO U INNER JOIN EMPLEADO E
+ON U.ID_EMPLEADO = E.ID_EMPLEADO 
+INNER JOIN ROL R 
+ON U.ID_ROL = R.ID_ROL ORDER BY U.ID_USUARIO ASC;
+
+	begin 
+	
+		open cursor_tablas;
+		fetch cursor_tablas into registro;
+		while found loop
+			begin 
+				
+				rec.ID_USUARIO = registro.id_usuario;
+				rec.USUARIO = registro.USUARIO;
+				rec.CONTRASEÑA = registro.CONTRASEÑA;
+				rec.ULTIMO_INGRESO = registro.ULTIMO_INGRESO;
+				rec.ESTADO = registro.ESTADO;
+				rec.ID_EMPLEADO = registro.ID_EMPLEADO;
+				rec.ID_ROL = registro.ID_ROL;
+				rec.NOMBRE = registro.NOMBRE;
+				rec.DESCRIPCION = registro.DESCRIPCION;
+			exception when others then 
+				raise notice '% %',sqlerrm,sqlstate;
+			end;
+			return next rec;
+			fetch cursor_tablas into registro;
+		end loop;
+		close cursor_tablas;
+		return;
+	end;
+$function$
+;
